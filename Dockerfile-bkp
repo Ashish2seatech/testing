@@ -1,0 +1,29 @@
+# Stage 1: Development
+FROM node:14-slim AS development
+
+WORKDIR /usr/src/app
+
+# Install all dependencies, including dev dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy the application code
+COPY . .
+
+# Stage 2: Production
+FROM node:14-slim AS production
+
+WORKDIR /usr/src/app
+
+# Copy only necessary files from the development stage
+COPY package*.json ./
+RUN npm install --only=production
+
+COPY . .
+
+# Expose the application port
+EXPOSE 3000
+
+# Start the app
+CMD ["node", "server.js"]
+
