@@ -3,6 +3,10 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'asisgolu95/demo-app'
+        REMOTE_USER = "demo-user"            // SSH user for remote server
+        REMOTE_HOST = "3.110.207.17"       // Remote server IP or hostname
+        SSH_CREDENTIALS = 'demo-user'  // Jenkins SSH credential ID
+        DOCKER_COMPOSE_DIR = "/home/demo-user/" // Directory on remote server
     }
 
     stages {
@@ -37,14 +41,28 @@ pipeline {
             }
         }
 
-        stage('Deploy Docker Container') {
+        stage('Copy Files to Remote Server') {
             steps {
                 script {
-                    sh '''
-                        docker stop demo-app || true
-                        docker rm demo-app || true
-                        docker run -d --name demo-app -p 3000:3000 ${DOCKER_IMAGE}
-                    '''
+                    sshagent([SSH_CREDENTIALS]) {
+                        // Copy docker-compose.yml or other required files to the remote server
+                        sh """
+                        scp docker-compose.yml ${REMOTE_USER}@${REMOTE_HOST}:${DOCKER_COMPOSE_DIR}/
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy on Remote Server') {
+            steps {
+                script {
+                    sshagent([SSH_CREDENTIALS]) {
+                        // Run docker-compose on the remote server
+                        sh """
+                        ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${DOCKER_COMPOSE_DIR} && docker-compose down && docker-compose up -d'
+                        """
+                    }
                 }
             }
         }
