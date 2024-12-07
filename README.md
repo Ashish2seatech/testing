@@ -12,3 +12,5 @@ Test api =  /api/v1/test
 Port = 3000
 ------------
 jai maa sarde
+
+push to docker hub
