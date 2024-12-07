@@ -3,42 +3,47 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'asisgolu95/demo-app'
-        DOCKER_REGISTRY = 'https://hub.docker.com/'
-        REGISTRY_CREDENTIAL = 'dockerhub_iD'
     }
 
     stages {
         stage('Checkout') {
             steps {
                 script {
-                    checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'https://github.com/Ashish2seatech/testing.git']]])
+                    checkout scm: [
+                        $class: 'GitSCM',
+                        branches: [[name: '*/master']],
+                        userRemoteConfigs: [[url: 'https://github.com/Ashish2seatech/testing.git']]
+                    ]
                 }
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'sudo docker build -t $DOCKER_IMAGE .'
+                    sh 'sudo docker build -t ${DOCKER_IMAGE} .'
                 }
             }
         }
+
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('$DOCKER_REGISTRY', '$REGISTRY_CREDENTIAL') {
-                        sh 'sudo docker push $DOCKER_IMAGE'
+                    withCredentials([usernamePassword(credentialsId: 'docker_hub_new', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'sudo docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}'
+                        sh 'sudo docker push ${DOCKER_IMAGE}'
                     }
                 }
             }
         }
+
         stage('Deploy Docker Container') {
             steps {
                 script {
-                    // Stop and remove any existing container
                     sh '''
-                    sudo docker stop demo-app || true
-                    sudo docker rm demo-app || true
-                    sudo docker run -d --name demo-app -p 3000:3000 $DOCKER_IMAGE
+                        docker stop demo-app || true
+                        docker rm demo-app || true
+                        docker run -d --name demo-app -p 3000:3000 ${DOCKER_IMAGE}
                     '''
                 }
             }
@@ -46,15 +51,9 @@ pipeline {
     }
 
     post {
-        success {
-            mail to: 'asis.golu@gmail.com',
-                 subject: "Jenkins Pipeline Success",
-                 body: "The Jenkins pipeline has completed successfully."
-        }
-        failure {
-            mail to: 'asis.golu@gmail.com',
-                 subject: "Jenkins Pipeline Failure",
-                 body: "The Jenkins pipeline has failed. Please check the logs."
+        always {
+            // Clean workspace after pipeline execution
+            cleanWs()
         }
     }
 }
