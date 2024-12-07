@@ -13,3 +13,4 @@ Port = 3000
 ------------
 JMD
 JMS
+sshpass command
