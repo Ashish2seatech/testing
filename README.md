@@ -11,6 +11,3 @@ Test api =  /api/v1/test
 
 Port = 3000
 ------------
-JMD
-JMS
-sshpass command
