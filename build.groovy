@@ -18,7 +18,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_IMAGE .'
+                    sh 'sudo docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
@@ -26,7 +26,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('$DOCKER_REGISTRY', '$REGISTRY_CREDENTIAL') {
-                        sh 'docker push $DOCKER_IMAGE'
+                        sh 'sudo docker push $DOCKER_IMAGE'
                     }
                 }
             }
@@ -36,9 +36,9 @@ pipeline {
                 script {
                     // Stop and remove any existing container
                     sh '''
-                    docker stop demo-app || true
-                    docker rm demo-app || true
-                    docker run -d --name demo-app -p 3000:3000 $DOCKER_IMAGE
+                    sudo docker stop demo-app || true
+                    sudo docker rm demo-app || true
+                    sudo docker run -d --name demo-app -p 3000:3000 $DOCKER_IMAGE
                     '''
                 }
             }
