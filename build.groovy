@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'asisgolu95/demo-app'
         DOCKER_REGISTRY = 'https://hub.docker.com/r/asisgolu95/demo-app'
-        DOCKER_IMAGE    = 'demo-app'
+        
         
     }
 
