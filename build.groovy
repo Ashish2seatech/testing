@@ -4,8 +4,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'asisgolu95/demo-app'
         REMOTE_USER = "demo-user"            // SSH user for remote server
-        REMOTE_HOST = "3.110.207.17"       // Remote server IP or hostname
-        SSH_CREDENTIALS = 'demo-user'  // Jenkins SSH credential ID
+        SERVER_PRIVATE_IP = "3.110.207.17"       // Remote server IP or hostname
+        CREDENTIALSID = 'demo-user'  // Jenkins SSH credential ID
         DOCKER_COMPOSE_DIR = "/home/demo-user/" // Directory on remote server
     }
 
@@ -44,10 +44,10 @@ pipeline {
         stage('Copy Files to Remote Server') {
             steps {
                 script {
-                    sshagent([SSH_CREDENTIALS]) {
+                    withCredentials([usernamePassword(credentialsId: "$CREDENTIALSID", passwordVariable: 'password', usernameVariable: 'username')]) {
                         // Copy docker-compose.yml or other required files to the remote server
                         sh """
-                        scp docker-compose.yml ${REMOTE_USER}@${REMOTE_HOST}:${DOCKER_COMPOSE_DIR}/
+                        sshpass -p $password scp docker-compose.yml $username@$SERVER_PRIVATE_IP:${DOCKER_COMPOSE_DIR}/
                         """
                     }
                 }
@@ -57,10 +57,10 @@ pipeline {
         stage('Deploy on Remote Server') {
             steps {
                 script {
-                    sshagent([SSH_CREDENTIALS]) {
+                    withCredentials([usernamePassword(credentialsId: "$CREDENTIALSID", passwordVariable: 'password', usernameVariable: 'username')]) {
                         // Run docker-compose on the remote server
                         sh """
-                        ssh ${REMOTE_USER}@${REMOTE_HOST} 'cd ${DOCKER_COMPOSE_DIR} && docker-compose down && docker-compose up -d'
+                        sshpass -p $password ssh -t -q -o StrictHostKeyChecking=no $username@$SERVER_PRIVATE_IP<<'EOSSH' 'cd ${DOCKER_COMPOSE_DIR} && docker-compose down && docker-compose up -d'
                         """
                     }
                 }
