@@ -69,8 +69,27 @@ pipeline {
     }
 
     post {
+        success {
+            emailext(
+                to: 'asis.golu@gmail.com',
+                subject: "Jenkins Pipeline Success: ${currentBuild.fullDisplayName}",
+                body: "The Jenkins pipeline has completed successfully. Build details:\n\n" +
+                      "Project: ${env.JOB_NAME}\n" +
+                      "Build Number: ${env.BUILD_NUMBER}\n" +
+                      "Status: SUCCESS"
+            )
+        }
+        failure {
+            emailext(
+                to: 'asis.golu@gmail.com',
+                subject: "Jenkins Pipeline Failure: ${currentBuild.fullDisplayName}",
+                body: "The Jenkins pipeline has failed. Please review the logs for details:\n\n" +
+                      "Project: ${env.JOB_NAME}\n" +
+                      "Build Number: ${env.BUILD_NUMBER}\n" +
+                      "Status: FAILURE"
+            )
+        }
         always {
-            // Clean workspace after pipeline execution
             cleanWs()
         }
     }
