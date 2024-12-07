@@ -13,3 +13,5 @@ Port = 3000
 ------------
 
 JMS
+
+run project
